@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>樹讀 · 一年之書</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --paper: #E3DCD2;          /* 跟渲染出來的翻頁紙色一樣 */
+    --paper-hi: #EFE9E0;
+    --ink: #1D2723;
+    --ink-soft: #5D6B65;
+    --light: #F6F3EE;
+    --light-soft: rgba(246, 243, 238, 0.74);
+    --spring: #E58FAA; --summer: #9DB0FF; --autumn: #F0A04B; --winter: #CFE3F0; --early: #9ED39A;
+    --season: var(--spring);
+    --f-display: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+    --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: #0d1210; color: var(--light); font-family: var(--f-body); }
+  body { overscroll-behavior-y: none; }
+  a { color: inherit; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+  /* ---------- 故事 ---------- */
+  .track { height: 1600vh; position: relative; }
+  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+  #cv { display: block; width: 100%; height: 100%; }
+  .shade { position: absolute; inset: 0; pointer-events: none; transition: opacity .4s;
+    background: linear-gradient(180deg, rgba(0,0,0,.30) 0%, rgba(0,0,0,0) 22%, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%); }
+
+  .cap { position: absolute; left: clamp(16px, 6vw, 96px); bottom: clamp(88px, 13vh, 150px);
+    max-width: min(520px, calc(100% - 32px)); opacity: 0; transform: translateY(16px);
+    transition: opacity .7s ease, transform .9s cubic-bezier(.2,.7,.2,1); pointer-events: none;
+    text-shadow: 0 2px 22px rgba(0,0,0,.5); }
+  .cap.on { opacity: 1; transform: none; pointer-events: auto; }
+  .cap .eb { font-size: 13px; letter-spacing: .24em; color: var(--season); margin-bottom: 12px; font-weight: 500; }
+  .cap h2 { font-family: var(--f-display); font-weight: 900; font-size: clamp(30px, 5vw, 60px); line-height: 1.18; letter-spacing: .03em; }
+  .cap p { margin-top: 14px; font-size: clamp(15px, 1.5vw, 18px); line-height: 1.8; color: var(--light-soft); }
+  .cap .go { display: inline-flex; gap: 14px; margin-top: 20px; flex-wrap: wrap; }
+  .cap .go a { text-decoration: none; font-size: 15px; padding: 9px 18px; border-radius: 99px;
+    border: 1px solid color-mix(in srgb, var(--season) 70%, transparent);
+    background: color-mix(in srgb, var(--season) 16%, rgba(0,0,0,.25)); backdrop-filter: blur(6px);
+    transition: background .25s; }
+  .cap .go a:hover { background: color-mix(in srgb, var(--season) 38%, rgba(0,0,0,.2)); }
+
+  /* 翻頁那幾格是一整片紙，標題用墨色寫在紙上 */
+  .ink { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; pointer-events: none;
+    color: var(--ink); opacity: 0; transition: opacity .35s; }
+  .ink.on { opacity: 1; }
+  .ink small { display: block; font-size: 13px; letter-spacing: .5em; color: var(--ink-soft); margin-bottom: 14px; padding-left: .5em; }
+  .ink b { font-family: var(--f-display); font-weight: 700; font-size: clamp(34px, 6vw, 64px); letter-spacing: .3em; padding-left: .3em; }
+
+  .hint { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); font-size: 13px; letter-spacing: .3em;
+    color: var(--light-soft); transition: opacity .5s; text-shadow: 0 1px 10px rgba(0,0,0,.5); }
+  .hint i { display: block; width: 1px; height: 34px; margin: 10px auto 0; background: linear-gradient(var(--light), transparent);
+    animation: drip 1.8s ease-in-out infinite; transform-origin: top; }
+  @keyframes drip { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
+
+  /* ---------- 上方列 ---------- */
+  .top { position: fixed; top: 0; left: 0; right: 0; z-index: 6; display: flex; align-items: center; gap: 10px;
+    padding: max(14px, env(safe-area-inset-top)) clamp(16px, 4vw, 40px) 14px; pointer-events: none; }
+  .top > * { pointer-events: auto; }
+  .brand { font-family: var(--f-display); font-weight: 900; font-size: 19px; letter-spacing: .14em; margin-right: auto;
+    text-decoration: none; text-shadow: 0 1px 12px rgba(0,0,0,.35); transition: color .4s; }
+  .brand span { font-family: var(--f-body); font-weight: 500; font-size: 11px; letter-spacing: .3em; margin-left: 8px; opacity: .75; }
+  .pill { font-size: 14px; padding: 7px 14px; border-radius: 99px; background: rgba(0,0,0,.22); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.18); display: inline-flex; align-items: center; gap: 7px; transition: background .25s, color .4s, border-color .4s; }
+  .pill:hover { background: rgba(0,0,0,.36); }
+  .pill svg { width: 16px; height: 16px; }
+  body.on-paper .brand, body.on-paper .pill { color: var(--ink); }
+  body.on-paper .pill { background: rgba(255,255,255,.3); border-color: rgba(29,39,35,.2); }
+  #skip.gone { opacity: 0; pointer-events: none; }
+
+  /* ---------- 季節書籤 ---------- */
+  .marks { position: fixed; right: 0; top: 50%; transform: translateY(-50%); z-index: 5; display: grid; gap: 8px; }
+  .marks button { --c: var(--light); width: 46px; padding: 12px 0 12px 12px; border-radius: 10px 0 0 10px; text-align: left;
+    background: color-mix(in srgb, var(--c) 30%, rgba(0,0,0,.32)); backdrop-filter: blur(6px);
+    font-family: var(--f-display); font-weight: 700; font-size: 15px; writing-mode: vertical-rl; letter-spacing: .3em;
+    transform: translateX(10px); transition: transform .35s cubic-bezier(.2,.7,.2,1), background .3s; color: var(--light); }
+  .marks button:hover { transform: translateX(4px); }
+  .marks button.on { transform: translateX(0); background: color-mix(in srgb, var(--c) 78%, rgba(0,0,0,.1)); color: #14201b; }
+  .marks button small { font-family: var(--f-body); font-weight: 500; font-size: 11px; letter-spacing: .2em; opacity: .8; margin-top: 6px; }
+  .marks .m-summer { --c: var(--summer); } .marks .m-autumn { --c: var(--autumn); }
+  .marks .m-winter { --c: var(--winter); } .marks .m-early { --c: var(--early); }
+  .marks.gone { opacity: 0; pointer-events: none; }
+
+  /* ---------- 目錄（像書的目錄頁） ---------- */
+  .toc { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 16px;
+    background: rgba(10, 14, 12, .5); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity .35s; }
+  .toc.open { opacity: 1; pointer-events: auto; }
+  .toc .sheet { width: min(520px, 100%); background: var(--paper-hi); color: var(--ink); border-radius: 4px 14px 14px 4px;
+    padding: clamp(28px, 5vw, 48px) clamp(24px, 5vw, 52px); box-shadow: -10px 0 0 -4px #cfc6b8, 0 30px 80px rgba(0,0,0,.4);
+    transform: perspective(1200px) rotateY(-14deg) translateX(30px); transform-origin: left center;
+    transition: transform .55s cubic-bezier(.2,.7,.2,1); position: relative; }
+  .toc.open .sheet { transform: none; }
+  .toc h3 { font-family: var(--f-display); font-weight: 900; font-size: 28px; letter-spacing: .5em; text-align: center; margin-bottom: 26px; }
+  .toc ol { list-style: none; display: grid; gap: 4px; }
+  .toc li button { width: 100%; display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 10px;
+    padding: 10px 6px; border-radius: 6px; text-align: left; transition: background .2s; }
+  .toc li button:hover { background: rgba(29,39,35,.06); }
+  .toc .n { font-family: var(--f-display); font-weight: 700; font-size: 17px; }
+  .toc .n em { font-style: normal; font-size: 13px; font-weight: 500; color: var(--ink-soft); margin-left: 8px; font-family: var(--f-body); }
+  .toc .dots { border-bottom: 1px dotted rgba(29,39,35,.35); transform: translateY(-4px); }
+  .toc .pg { font-variant-numeric: tabular-nums; color: var(--ink-soft); font-size: 14px; }
+  .toc .x { position: absolute; top: 14px; right: 16px; width: 36px; height: 36px; border-radius: 50%; font-size: 22px; color: var(--ink-soft); }
+  .toc .x:hover { background: rgba(29,39,35,.07); }
+  .toc .foot { margin-top: 22px; text-align: center; font-size: 13px; color: var(--ink-soft); }
+
+  /* ---------- 故事之後 ---------- */
+  .after { background: var(--paper-hi); color: var(--ink); padding: clamp(64px, 12vh, 120px) clamp(16px, 5vw, 48px) 48px; position: relative; z-index: 2; }
+  .after .wrap { max-width: 980px; margin: 0 auto; }
+  .after h2 { font-family: var(--f-display); font-weight: 900; font-size: clamp(28px, 4vw, 40px); letter-spacing: .06em; }
+  .after .lede { margin-top: 10px; color: var(--ink-soft); font-size: 16px; line-height: 1.8; }
+  .worlds { margin-top: 36px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .world { --c: #888; --bg: #eee; display: grid; gap: 6px; align-content: start; padding: 20px 18px 22px; border-radius: 12px;
+    background: var(--bg); border-top: 4px solid var(--c); text-decoration: none; transition: transform .25s; min-width: 0; }
+  .world:hover { transform: translateY(-3px); }
+  .world .s { font-size: 12px; letter-spacing: .25em; color: var(--c); font-weight: 700; }
+  .world b { font-family: var(--f-display); font-size: 20px; }
+  .world span { font-size: 14px; color: var(--ink-soft); line-height: 1.6; }
+  .w-summer { --c: #3E4C93; --bg: #E5E8F5; } .w-autumn { --c: #B8741F; --bg: #F7ECDD; }
+  .w-winter { --c: #4F7C95; --bg: #E3EDF2; } .w-early { --c: #3D6A55; --bg: #E2ECE6; }
+  .row2 { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row2 a { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-radius: 12px; text-decoration: none;
+    border: 1px solid rgba(29,39,35,.14); background: #fff8; }
+  .row2 a b { font-family: var(--f-display); font-size: 18px; }
+  .row2 a span { font-size: 14px; color: var(--ink-soft); }
+  .again { margin-top: 40px; text-align: center; }
+  .again button { font-size: 14px; color: var(--ink-soft); padding: 8px 16px; border-radius: 99px; border: 1px solid rgba(29,39,35,.18); }
+  footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid rgba(29,39,35,.14); font-size: 13px; color: var(--ink-soft);
+    display: flex; flex-wrap: wrap; gap: 8px 22px; }
+
+  /* ---------- 載入：種子發芽 ---------- */
+  .loader { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; background: var(--paper-hi); color: var(--ink);
+    transition: opacity .8s ease; }
+  .loader.done { opacity: 0; pointer-events: none; }
+  .loader .box { display: grid; justify-items: center; gap: 18px; }
+  .loader svg { width: 120px; height: 150px; overflow: visible; }
+  .loader .stem { stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset .3s linear; }
+  .loader .lf { transform-box: fill-box; transition: transform .6s cubic-bezier(.3,1.6,.5,1); transform: scale(0); }
+  .loader .lf.l { transform-origin: right bottom; } .loader .lf.r { transform-origin: left bottom; }
+  .loader .lf.on { transform: scale(1); }
+  .loader .t { font-family: var(--f-display); font-weight: 700; letter-spacing: .4em; font-size: 15px; padding-left: .4em; }
+  .loader .pct { font-size: 12px; color: var(--ink-soft); letter-spacing: .2em; font-variant-numeric: tabular-nums; }
+
+  /* 游標光點／點擊光點 */
+  #fx { position: fixed; inset: 0; z-index: 8; pointer-events: none; }
+
+  @media (max-width: 760px) {
+    .marks { top: auto; bottom: max(10px, env(safe-area-inset-bottom)); right: 50%; transform: translateX(50%);
+      grid-auto-flow: column; gap: 6px; }
+    .marks button { writing-mode: horizontal-tb; width: auto; padding: 9px 14px; border-radius: 10px; transform: none; letter-spacing: .15em; font-size: 14px; }
+    .marks button:hover { transform: none; }
+    .marks button.on { transform: translateY(-3px); }
+    .marks button small { display: none; }
+    .cap { bottom: 100px; }
+    .hint { bottom: 80px; }
+    .brand span { display: none; }
+    .pill .lbl { display: none; }
+    .pill { padding: 8px 10px; }
+    #skip .lbl { display: inline; }
+    .worlds { grid-template-columns: 1fr 1fr; }
+    .row2 { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { #fx { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader">
+  <div class="box">
+    <svg viewBox="0 0 120 150" aria-hidden="true">
+      <ellipse cx="60" cy="138" rx="34" ry="5" fill="#d7cfc2"/>
+      <path class="stem" id="stem" d="M60 134 C 60 110, 56 92, 62 62" fill="none" stroke="#3D6A55" stroke-width="3" stroke-linecap="round" pathLength="100"/>
+      <path class="lf l" id="lf1" d="M59 96 C 44 98, 34 88, 32 76 C 46 74, 56 82, 59 96 Z" fill="#6FA37F"/>
+      <path class="lf r" id="lf2" d="M62 64 C 72 50, 88 48, 96 54 C 90 66, 76 70, 62 64 Z" fill="#8CC2A6"/>
+      <ellipse cx="60" cy="134" rx="9" ry="6" fill="#8a6a4f"/>
+    </svg>
+    <div class="t">樹讀</div>
+    <div class="pct" id="pct">0%</div>
+  </div>
+</div>
+
+<header class="top">
+  <a class="brand" href="#" id="brand">樹讀<span>TRUVISOX</span></a>
+  <button class="pill" id="snd" aria-pressed="false" title="聲音">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path id="sndWave" d="M17 9l4 6M21 9l-4 6"/></svg>
+    <span class="lbl" id="sndLbl">聲音關</span>
+  </button>
+  <button class="pill" id="tocBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 5.5C6.5 4.5 9.5 4.5 12 6c2.5-1.5 5.5-1.5 8-.5v13c-2.5-1-5.5-1-8 .5-2.5-1.5-5.5-1.5-8-.5z"/><path d="M12 6v13.5"/></svg><span class="lbl">目錄</span></button>
+  <button class="pill" id="skip"><span class="lbl">跳過</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l6 6-6 6M13 6l6 6-6 6"/></svg></button>
+</header>
+
+<nav class="marks" id="marks" aria-label="季節書籤">
+  <button class="m-summer" data-go="summer">夏<small>作品</small></button>
+  <button class="m-autumn" data-go="autumn">秋<small>工坊</small></button>
+  <button class="m-winter" data-go="winter">冬<small>書房</small></button>
+  <button class="m-early" data-go="early">信<small>委託</small></button>
+</nav>
+
+<div class="toc" id="toc" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-label="目錄">
+    <button class="x" id="tocX" aria-label="關閉">×</button>
+    <h3>目錄</h3>
+    <ol>
+      <li><button data-go="open"><span class="n">序<em>樹下</em></span><span class="dots"></span><span class="pg">1</span></button></li>
+      <li><button data-go="summer"><span class="n">第一頁<em>夏夜・作品</em></span><span class="dots"></span><span class="pg">2</span></button></li>
+      <li><button data-go="autumn"><span class="n">第二頁<em>秋・工坊</em></span><span class="dots"></span><span class="pg">3</span></button></li>
+      <li><button data-go="winter"><span class="n">第三頁<em>冬・書房</em></span><span class="dots"></span><span class="pg">4</span></button></li>
+      <li><button data-go="early"><span class="n">第四頁<em>早春・一封信</em></span><span class="dots"></span><span class="pg">5</span></button></li>
+      <li><button data-go="close"><span class="n">後記<em>樹下的人</em></span><span class="dots"></span><span class="pg">6</span></button></li>
+    </ol>
+    <p class="foot">點一下就翻到那一頁</p>
+  </div>
+</div>
+
+<main>
+  <div class="track" id="track">
+    <div class="stage">
+      <canvas id="cv"></canvas>
+      <div class="shade" id="shade"></div>
+
+      <div class="cap" data-f="1-50" data-season="spring">
+        <div class="eb">樹讀 TRUVISOX</div>
+        <h2>樹下有一本書</h2>
+        <p>風一吹，花瓣就往下掉。<br>往下滑，走過去看看。</p>
+      </div>
+      <div class="cap" data-f="66-126" data-season="spring">
+        <div class="eb">春</div>
+        <h2>風把書翻開了</h2>
+        <p>每一頁，都通往一個地方。</p>
+      </div>
+      <div class="cap" data-f="172-236" data-season="summer">
+        <div class="eb">第一頁・夏夜</div>
+        <h2>作品</h2>
+        <p>動畫、綁定、短片。<br>每一件都拆開給你看，是怎麼做出來的。</p>
+        <div class="go"><a href="#works">看作品 →</a></div>
+      </div>
+      <div class="cap" data-f="274-336" data-season="autumn">
+        <div class="eb">第二頁・秋</div>
+        <h2>工坊</h2>
+        <p>我寫的工具，自己每天也在用。<br>有免費的，也有付費的。</p>
+        <div class="go"><a href="#shop">逛工坊 →</a></div>
+      </div>
+      <div class="cap" data-f="374-436" data-season="winter">
+        <div class="eb">第三頁・冬</div>
+        <h2>書房</h2>
+        <p>做東西時記下來的筆記，還有教學。<br>外面在下雪，慢慢看。</p>
+        <div class="go"><a href="#notes">進書房 →</a></div>
+      </div>
+      <div class="cap" data-f="470-516" data-season="early">
+        <div class="eb">第四頁・早春</div>
+        <h2>下一頁，由你來寫</h2>
+        <p>想找我做角色綁定、動畫，<br>或是客製一個工具，寫封信給我。</p>
+        <div class="go"><a href="#letter">寫信給我 →</a></div>
+      </div>
+      <div class="cap" data-f="556-621" data-season="spring">
+        <div class="eb">春</div>
+        <h2>書闔上，<br>又回到樹下</h2>
+        <p>一年走完了。</p>
+        <div class="go"><a href="#about">樹下的人</a><a href="#follow">之後再來看看</a></div>
+      </div>
+
+      <div class="ink" data-f="144-162"><div><small>第一頁</small><b>夏夜</b></div></div>
+      <div class="ink" data-f="244-262"><div><small>第二頁</small><b>秋</b></div></div>
+      <div class="ink" data-f="344-362"><div><small>第三頁</small><b>冬</b></div></div>
+      <div class="ink" data-f="444-460"><div><small>第四頁</small><b>早春</b></div></div>
+      <div class="ink" data-f="524-538"><div><small>最後一頁</small><b>回到樹下</b></div></div>
+
+      <div class="hint" id="hint">往下滑<i></i></div>
+    </div>
+  </div>
+
+  <section class="after" id="after">
+    <div class="wrap">
+      <h2>故事看完了</h2>
+      <p class="lede">想直接去哪一頁，從這裡進去就好。下次來也可以按右上角「跳過」。</p>
+      <div class="worlds">
+        <a class="world w-summer" href="#works"><span class="s">夏夜</span><b>作品</b><span>動畫、綁定、短片，附製作過程</span></a>
+        <a class="world w-autumn" href="#shop"><span class="s">秋</span><b>工坊</b><span>Maya／Max 工具，免費和付費</span></a>
+        <a class="world w-winter" href="#notes"><span class="s">冬</span><b>書房</b><span>創作筆記、教學</span></a>
+        <a class="world w-early" href="#letter"><span class="s">早春</span><b>一封信</b><span>客製委託、聯絡我</span></a>
+      </div>
+      <div class="row2">
+        <a href="#about"><b>樹下的人</b><span>關於我 →</span></a>
+        <a href="#follow"><b>之後再來看看</b><span>電子報・IG・YouTube →</span></a>
+      </div>
+      <div class="again"><button id="again">從頭再看一次 ↑</button></div>
+      <footer><span>樹讀 TRUVISOX</span><span>首頁捲動原型 · 畫面為 Blender 示意版</span></footer>
+    </div>
+  </section>
+</main>
+
+<canvas id="fx"></canvas>
+
+<script>
+(() => {
+  const N = 620;                                    // 總格數
+  const src = i => `frames/f_${String(i + 1).padStart(4, "0")}.jpg`;
+  const FIRST = 150;                                // 第一段（春）載完就開場
+  // 每一章從第幾格開始（給書籤和目錄跳轉）
+  const CH = { open: 1, summer: 168, autumn: 270, winter: 370, early: 466, close: 548 };
+  const SEASON_OF = f => f <= 150 ? "spring" : f <= 250 ? "summer" : f <= 350 ? "autumn" : f <= 450 ? "winter" : f <= 530 ? "early" : "spring";
+  const SEASON_COL = { spring: "#F4A6BE", summer: "#C8FF7A", autumn: "#FFAE5C", winter: "#FFFFFF", early: "#B9F0A8" };
+  // 這幾段整個畫面是紙：上方按鈕改成墨色
+  const PAPER_RANGES = [[145, 158], [245, 258], [345, 358], [445, 456], [525, 537]];
+
+  const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+  const track = document.getElementById("track");
+  const caps = [...document.querySelectorAll(".cap")];
+  const inks = [...document.querySelectorAll(".ink")];
+  const range = el => el.dataset.f.split("-").map(Number);
+  caps.forEach(c => c._r = range(c)); inks.forEach(c => c._r = range(c));
+  const marks = document.getElementById("marks"), skip = document.getElementById("skip");
+  const hint = document.getElementById("hint"), shade = document.getElementById("shade");
+  const root = document.documentElement;
+
+  /* ---------- 載入 ---------- */
+  const frames = new Array(N);
+  let loaded = 0;
+  const stem = document.getElementById("stem"), pct = document.getElementById("pct");
+  const lf1 = document.getElementById("lf1"), lf2 = document.getElementById("lf2");
+  function loaderProgress(p) {
+    stem.style.strokeDashoffset = 100 - p * 100;
+    lf1.classList.toggle("on", p > 0.45); lf2.classList.toggle("on", p > 0.9);
+    pct.textContent = Math.round(p * 100) + "%";
+  }
+  function load(i) {
+    return new Promise(res => {
+      const img = new Image();
+      img.decoding = "async";
+      img.onload = img.onerror = () => { frames[i] = img; loaded++; res(); };
+      img.src = src(i);
+    });
+  }
+  async function loadRange(a, b, onEach) {
+    const step = 12;
+    for (let s = a; s < b; s += step) {
+      const batch = [];
+      for (let i = s; i < Math.min(b, s + step); i++) if (!frames[i]) batch.push(load(i));
+      await Promise.all(batch);
+      onEach && onEach();
+    }
+  }
+
+  /* ---------- 畫格 ---------- */
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(cv.clientWidth * dpr); cv.height = Math.round(cv.clientHeight * dpr);
+    fx.width = innerWidth * dpr; fx.height = innerHeight * dpr; fxc.setTransform(dpr, 0, 0, dpr, 0, 0);
+    lastDrawn = -1;
+  }
+  function nearestLoaded(i) {
+    for (let d = 0; d < N; d++) {
+      if (frames[i - d] && frames[i - d].naturalWidth) return i - d;
+      if (frames[i + d] && frames[i + d].naturalWidth) return i + d;
+    }
+    return -1;
+  }
+  function draw(i) {
+    const k = nearestLoaded(i); if (k < 0) return;
+    const img = frames[k], cw = cv.width, ch = cv.height;
+    const s = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
+    const w = img.naturalWidth * s, h = img.naturalHeight * s;
+    ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
+    return k === i;
+  }
+  const trackTop = () => track.getBoundingClientRect().top + scrollY;
+  const scrollable = () => track.offsetHeight - innerHeight;
+  function progress() { return Math.min(1, Math.max(0, (scrollY - trackTop()) / scrollable())); }
+  function goFrame(f, smooth = true) {
+    const y = trackTop() + (f - 1) / (N - 1) * scrollable();
+    scrollTo({ top: y, behavior: smooth && !matchMedia("(prefers-reduced-motion: reduce)").matches ? "smooth" : "auto" });
+  }
+
+  let current = 0, lastDrawn = -1, lastFrame = 1, season = "spring";
+  function tick() {
+    const p = progress();
+    const target = p * (N - 1);
+    current += (target - current) * 0.16;
+    if (Math.abs(target - current) < 0.02) current = target;
+    const idx = Math.round(current);
+    if (idx !== lastDrawn) { if (draw(idx)) lastDrawn = idx; else lastDrawn = -1; }
+
+    const f = idx + 1;                            // 1-based，對照 Blender 的格數
+    for (const c of caps) c.classList.toggle("on", f >= c._r[0] && f <= c._r[1]);
+    for (const c of inks) c.classList.toggle("on", f >= c._r[0] && f <= c._r[1]);
+    const onPaper = PAPER_RANGES.some(([a, b]) => f >= a && f <= b);
+    document.body.classList.toggle("on-paper", onPaper);
+    shade.style.opacity = onPaper ? 0 : 1;
+    hint.style.opacity = f > 6 ? 0 : 1;
+
+    const s = SEASON_OF(f);
+    if (s !== season) { season = s; root.style.setProperty("--season", `var(--${s})`); }
+    for (const b of marks.children) {
+      const k = b.dataset.go, a = CH[k], z = { summer: 250, autumn: 350, winter: 450, early: 530 }[k];
+      b.classList.toggle("on", f >= a - 18 && f <= z);
+    }
+    const past = scrollY > trackTop() + scrollable() - 4;
+    skip.classList.toggle("gone", past);
+    marks.classList.toggle("gone", past);
+    sound.update(f, lastFrame);
+    lastFrame = f;
+    requestAnimationFrame(tick);
+  }
+
+  /* ---------- 書籤、目錄、跳過 ---------- */
+  marks.addEventListener("click", e => { const b = e.target.closest("button"); if (b) goFrame(CH[b.dataset.go]); });
+  const toc = document.getElementById("toc");
+  const openToc = o => { toc.classList.toggle("open", o); toc.setAttribute("aria-hidden", !o); };
+  document.getElementById("tocBtn").onclick = () => openToc(true);
+  document.getElementById("tocX").onclick = () => openToc(false);
+  toc.addEventListener("click", e => {
+    if (e.target === toc) return openToc(false);
+    const b = e.target.closest("button[data-go]"); if (!b) return;
+    openToc(false); setTimeout(() => goFrame(CH[b.dataset.go], false), 200);
+  });
+  addEventListener("keydown", e => { if (e.key === "Escape") openToc(false); });
+  skip.onclick = () => scrollTo({ top: document.getElementById("after").offsetTop, behavior: "auto" });
+  document.getElementById("again").onclick = () => scrollTo({ top: 0, behavior: "auto" });
+  document.getElementById("brand").onclick = e => { e.preventDefault(); scrollTo({ top: 0, behavior: "auto" }); };
+
+  /* ---------- 游標光點（手機：點一下冒出季節光點） ---------- */
+  const fx = document.getElementById("fx"), fxc = fx.getContext("2d");
+  const parts = [];
+  const fine = matchMedia("(pointer: fine)").matches;
+  let mx = -99, my = -99;
+  function spawn(x, y, n, spread, life) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, v = Math.random() * spread;
+      parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - (season === "winter" ? -0.2 : 0.25),
+        life, max: life, r: 1 + Math.random() * 2.2, rot: Math.random() * 6, col: SEASON_COL[season], kind: season });
+    }
+  }
+  if (fine) addEventListener("pointermove", e => { mx = e.clientX; my = e.clientY; if (Math.random() < 0.55) spawn(mx, my, 1, 0.5, 46); });
+  addEventListener("pointerdown", e => { if (!fine || e.pointerType === "touch") spawn(e.clientX, e.clientY, 14, 2.6, 32); });
+  function fxLoop() {
+    fxc.clearRect(0, 0, innerWidth, innerHeight);
+    fxc.globalCompositeOperation = "lighter";
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      p.x += p.vx; p.y += p.vy; p.vx *= 0.96; p.vy = p.vy * 0.96 + (p.kind === "autumn" || p.kind === "spring" ? 0.03 : 0); p.rot += 0.08;
+      const t = p.life / p.max, a = t * 0.9;
+      fxc.save(); fxc.translate(p.x, p.y); fxc.rotate(p.rot); fxc.globalAlpha = a;
+      fxc.fillStyle = p.col; fxc.shadowColor = p.col; fxc.shadowBlur = 10;
+      if (p.kind === "spring" || p.kind === "autumn") { fxc.beginPath(); fxc.ellipse(0, 0, p.r * 1.8, p.r, 0, 0, Math.PI * 2); fxc.fill(); }
+      else { fxc.beginPath(); fxc.arc(0, 0, p.r, 0, Math.PI * 2); fxc.fill(); }
+      fxc.restore();
+      if (--p.life <= 0) parts.splice(i, 1);
+    }
+    if (fine && mx > 0) {                         // 游標本身的小光點
+      fxc.globalAlpha = 0.9; fxc.fillStyle = SEASON_COL[season]; fxc.shadowColor = SEASON_COL[season]; fxc.shadowBlur = 14;
+      fxc.beginPath(); fxc.arc(mx, my, 3, 0, Math.PI * 2); fxc.fill(); fxc.shadowBlur = 0;
+    }
+    fxc.globalAlpha = 1; fxc.globalCompositeOperation = "source-over";
+    requestAnimationFrame(fxLoop);
+  }
+
+  /* ---------- 聲音：預設關。全部即時合成，不用音檔 ---------- */
+  const sound = (() => {
+    let ac = null, on = false, master, wind, windGain, crickets, crickGain, fire, fireGain;
+    function noiseBuf(sec, brown) {
+      const b = ac.createBuffer(1, ac.sampleRate * sec, ac.sampleRate), d = b.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < d.length; i++) { const w = Math.random() * 2 - 1; if (brown) { last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5; } else d[i] = w; }
+      return b;
+    }
+    function init() {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain(); master.gain.value = 0; master.connect(ac.destination);
+      // 風：棕噪音＋低通，音量慢慢起伏
+      wind = ac.createBufferSource(); wind.buffer = noiseBuf(4, true); wind.loop = true;
+      const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 600;
+      windGain = ac.createGain(); windGain.gain.value = 0.5;
+      const lfo = ac.createOscillator(), lfoG = ac.createGain(); lfo.frequency.value = 0.09; lfoG.gain.value = 0.25;
+      lfo.connect(lfoG); lfoG.connect(windGain.gain); lfo.start();
+      wind.connect(lp); lp.connect(windGain); windGain.connect(master); wind.start();
+      // 夏夜蟲鳴：高頻正弦，用方波開關
+      const c = ac.createOscillator(); c.frequency.value = 4400;
+      const am = ac.createOscillator(); am.type = "square"; am.frequency.value = 14;
+      const amG = ac.createGain(); amG.gain.value = 0.5; am.connect(amG);
+      const cg = ac.createGain(); cg.gain.value = 0; amG.connect(cg.gain);
+      crickGain = ac.createGain(); crickGain.gain.value = 0;
+      c.connect(cg); cg.connect(crickGain); crickGain.connect(master); c.start(); am.start();
+      // 冬天爐火：白噪音過帶通，偶爾劈啪
+      fire = ac.createBufferSource(); fire.buffer = noiseBuf(3, false); fire.loop = true;
+      const bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 900; bp.Q.value = 0.7;
+      fireGain = ac.createGain(); fireGain.gain.value = 0;
+      fire.connect(bp); bp.connect(fireGain); fireGain.connect(master); fire.start();
+    }
+    function flip() {                              // 翻頁聲
+      if (!on) return;
+      const s = ac.createBufferSource(); s.buffer = noiseBuf(0.5, false);
+      const f = ac.createBiquadFilter(); f.type = "bandpass"; f.Q.value = 0.8;
+      const g = ac.createGain(); const t = ac.currentTime;
+      f.frequency.setValueAtTime(2500, t); f.frequency.exponentialRampToValueAtTime(700, t + 0.4);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.35, t + 0.05); g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+      s.connect(f); f.connect(g); g.connect(master); s.start(); s.stop(t + 0.5);
+    }
+    const FLIPS = [150, 250, 350, 450, 530];
+    let crackleT = 0;
+    function update(f, prev) {
+      if (!ac || !on) return;
+      const t = ac.currentTime, s = SEASON_OF(f);
+      crickGain.gain.setTargetAtTime(s === "summer" ? 0.025 : 0, t, 0.4);
+      fireGain.gain.setTargetAtTime(f > 395 && f <= 450 ? 0.05 : 0, t, 0.4);
+      windGain.gain.setTargetAtTime(s === "summer" || (f > 395 && f <= 450) ? 0.15 : 0.5, t, 0.6);
+      if (f > 395 && f <= 450 && t > crackleT && Math.random() < 0.05) {
+        crackleT = t + 0.15;
+        const o = ac.createBufferSource(); o.buffer = noiseBuf(0.03, false);
+        const g = ac.createGain(); g.gain.value = 0.18; o.connect(g); g.connect(master); o.start();
+      }
+      for (const x of FLIPS) if ((prev < x && f >= x) || (prev > x && f <= x)) flip();
+    }
+    const btn = document.getElementById("snd"), lbl = document.getElementById("sndLbl"), wave = document.getElementById("sndWave");
+    btn.onclick = () => {
+      if (!ac) init();
+      on = !on; ac.resume();
+      master.gain.setTargetAtTime(on ? 0.8 : 0, ac.currentTime, 0.3);
+      btn.setAttribute("aria-pressed", on); lbl.textContent = on ? "聲音開" : "聲音關";
+      wave.setAttribute("d", on ? "M16 9.5a4 4 0 0 1 0 5M18.5 7a7.5 7.5 0 0 1 0 10" : "M17 9l4 6M21 9l-4 6");
+    };
+    return { update };
+  })();
+
+  /* ---------- 效能計數器：網址加 ?fps ---------- */
+  if (location.search.includes("fps")) {
+    const box = document.createElement("div");
+    box.style.cssText = "position:fixed;bottom:12px;left:12px;z-index:40;background:rgba(0,0,0,.7);color:#fff;font:13px/1.5 monospace;padding:8px 12px;border-radius:6px;white-space:pre";
+    document.body.appendChild(box);
+    let last = performance.now(), times = [], slow = 0;
+    (function meter(now) {
+      const dt = now - last; last = now; times.push(dt); if (times.length > 60) times.shift();
+      if (dt > 34) slow++;
+      box.textContent = `FPS ${Math.round(1000 / (times.reduce((a, b) => a + b, 0) / times.length))}  掉格 ${slow}\n已載 ${loaded}/${N}`;
+      requestAnimationFrame(meter);
+    })(last);
+  }
+
+  addEventListener("resize", resize);
+  (async () => {
+    resize();
+    await load(0); draw(0);
+    await loadRange(1, FIRST, () => loaderProgress(loaded / FIRST));
+    loaderProgress(1);
+    setTimeout(() => document.getElementById("loader").classList.add("done"), 350);
+    requestAnimationFrame(tick); requestAnimationFrame(fxLoop);
+    loadRange(FIRST, N);                           // 後面的邊看邊載
+  })();
+})();
+</script>
+</body>
+</html>
